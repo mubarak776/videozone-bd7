@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elite Investment Video App</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Telegram WebApp SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <!-- External Ad SDK -->
+    <script src='//libtl.com/sdk.js' data-zone='12236532' data-sdk='show_12236532'></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap');
+        body { font-family: 'Hind Siliguri', sans-serif; background-color: #0b0f19; color: #f3f4f6; }
+        .glass-card { background: rgba(17, 24, 39, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+    </style>
+</head>
+<body class="min-h-screen pb-20">
+
+    <!-- Top Header Bar -->
+    <header class="sticky top-0 z-50 glass-card px-4 py-3 flex justify-between items-center border-b border-gray-800">
+        <div class="flex items-center space-x-3">
+            <div id="user-avatar" class="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center justify-center font-bold text-lg shadow-md">U</div>
+            <div>
+                <h2 id="user-name" class="text-sm font-bold text-white">Loading...</h2>
+                <p class="text-xs text-gray-400">ID: <span id="user-id">------</span></p>
+            </div>
+        </div>
+        <div class="flex items-center space-x-2">
+            <div class="bg-gray-800/80 px-3 py-1.5 rounded-full border border-gray-700 flex items-center space-x-1 shadow-inner">
+                <i class="fa-solid fa-wallet text-emerald-400 text-xs"></i>
+                <span id="user-balance" class="text-emerald-400 font-bold text-sm">0.00</span> <span class="text-xs text-gray-400">৳</span>
+            </div>
+            <button onclick="switchTab('deposit')" class="bg-gradient-to-r from-amber-500 to-orange-600 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-lg hover:opacity-95 transition">
+                <i class="fa-solid fa-plus-circle mr-1"></i> ডিপোজিট
+            </button>
+        </div>
+    </header>
+    <!-- Main Container -->
+    <main class="max-w-md mx-auto p-4">
+
+        <!-- Stats Bar -->
+        <div class="grid grid-cols-2 gap-3 mb-4">
+            <div class="glass-card p-3 rounded-xl flex items-center space-x-3">
+                <div class="p-2.5 rounded-lg bg-blue-500/20 text-blue-400"><i class="fa-solid fa-users text-lg"></i></div>
+                <div>
+                    <p class="text-[10px] text-gray-400 uppercase tracking-wider">লাইভ ভিজিটর</p>
+                    <h3 id="live-visitors" class="text-base font-bold text-white">18</h3>
+                </div>
+            </div>
+            <div class="glass-card p-3 rounded-xl flex items-center space-x-3">
+                <div class="p-2.5 rounded-lg bg-emerald-500/20 text-emerald-400"><i class="fa-solid fa-eye text-lg"></i></div>
+                <div>
+                    <p class="text-[10px] text-gray-400 uppercase tracking-wider">মোট ভিজিট</p>
+                    <h3 id="total-visitors" class="text-base font-bold text-white">149</h3>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 1: HOME & VIDEOS -->
+        <div id="tab-home" class="tab-content active space-y-4">
+            <!-- Ad Watch Banner Widget -->
+            <div class="glass-card p-4 rounded-2xl border border-amber-500/30 bg-gradient-to-br from-gray-900 via-gray-900 to-amber-950/30">
+                <div class="flex items-center justify-between mb-2">
+                    <div class="flex items-center space-x-2">
+                        <span class="bg-amber-500 text-gray-950 text-[10px] font-extrabold px-2 py-0.5 rounded shadow">Ad</span>
+                        <h3 class="text-sm font-bold text-amber-300">অ্যাড দেখে প্রিমিয়াম ভিডিও আনলক</h3>
+                    </div>
+                    <span id="ad-counter-badge" class="text-xs bg-gray-800 px-2 py-1 rounded-full text-gray-300">০ / ৫ দেখা হয়েছে</span>
+                </div>
+                <p class="text-xs text-gray-300 mb-3">একটি ভিডিও আনলক করতে পাঁচটি বিজ্ঞাপন সফলভাবে সম্পন্ন করুন।</p>
+                <button onclick="watchAdSequence()" id="watch-ad-btn" class="w-full bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 text-gray-950 font-bold py-2.5 px-4 rounded-xl text-xs shadow-lg flex items-center justify-center space-x-2 transition">
+                    <i class="fa-solid fa-play"></i>
+                    <span id="ad-btn-text">এখন এড দেখুন (৫ পয়েন্ট)</span>
+                </button>
+            </div>
+
+            <!-- Quick Links -->
+            <div class="glass-card p-3 rounded-xl flex items-center justify-between">
+                <div class="flex items-center space-x-2.5">
+                    <div class="w-9 h-9 rounded-full bg-blue-600/20 text-blue-400 flex items-center justify-center">
+                        <i class="fa-brands fa-telegram text-lg"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-xs font-bold text-white">অফিশিয়াল টেলিগ্রাম চ্যানেল</h4>
+                        <p class="text-[10px] text-gray-400">সকল আপডেট পেতে যুক্ত থাকুন</p>
+                    </div>
+                </div>
+                <a href="https://t.me/Pori_moni_5" target="_blank" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition">চ্যানেল</a>
+            </div>
+
+            <!-- Video Gallery Section -->
+            <div class="space-y-3">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-sm font-bold text-white flex items-center space-x-2">
+                        <i class="fa-solid fa-video text-red-500"></i>
+                        <span>ভিডিও গ্যালারি</span>
+                    </h3>
+                    <span class="text-[11px] text-gray-400">প্রতি ভিডিও: ৫ অ্যাড বা ৫ ৳</span>
+                </div>
+
+                <div id="video-gallery-container" class="space-y-3">
+                    <!-- Dynamic Videos -->
+                </div>
+            </div>
+        </div>
+        <!-- TAB 2: DEPOSIT -->
+        <div id="tab-deposit" class="tab-content space-y-4">
+            <div class="glass-card p-4 rounded-2xl">
+                <h3 class="text-sm font-bold text-white mb-3 flex items-center space-x-2">
+                    <i class="fa-solid fa-wallet text-amber-400"></i>
+                    <span>পেমেন্ট মেথড সিলেক্ট করুন:</span>
+                </h3>
+
+                <!-- Gateway Selector -->
+                <div class="grid grid-cols-2 gap-2 mb-4">
+                    <button onclick="selectGateway('bkash')" id="gateway-bkash" class="gateway-btn p-2.5 rounded-xl border border-gray-700 bg-gray-800/50 text-xs font-semibold text-center transition flex flex-col items-center justify-center space-y-1">
+                        <span class="text-pink-400 font-bold">বিকাশ (Send Money)</span>
+                    </button>
+                    <button onclick="selectGateway('nagad')" id="gateway-nagad" class="gateway-btn p-2.5 rounded-xl border border-pink-500 bg-pink-500/10 text-xs font-semibold text-center transition flex flex-col items-center justify-center space-y-1">
+                        <span class="text-orange-400 font-bold">নগদ (Send Money)</span>
+                    </button>
+                    <button onclick="selectGateway('binance')" id="gateway-binance" class="gateway-btn p-2.5 rounded-xl border border-gray-700 bg-gray-800/50 text-xs font-semibold text-center transition flex flex-col items-center justify-center space-y-1">
+                        <span class="text-yellow-400 font-bold">Binance Pay</span>
+                    </button>
+                    <button onclick="selectGateway('bitcoin')" id="gateway-bitcoin" class="gateway-btn p-2.5 rounded-xl border border-gray-700 bg-gray-800/50 text-xs font-semibold text-center transition flex flex-col items-center justify-center space-y-1">
+                        <span class="text-amber-500 font-bold">Bitcoin (BTC)</span>
+                    </button>
+                </div>
+
+                <!-- Gateway Instructions Box -->
+                <div id="gateway-info-box" class="bg-gray-900/80 p-3 rounded-xl border border-gray-800 text-xs space-y-2 mb-4">
+                    <p id="gateway-title" class="font-bold text-orange-400">নগদ (Send Money)</p>
+                    <div class="flex justify-between items-center bg-gray-800 px-3 py-2 rounded-lg">
+                        <span id="gateway-acc" class="font-mono text-white text-sm font-bold">01863796311</span>
+                        <button onclick="copyToClipboard('gateway-acc')" class="text-xs bg-gray-700 hover:bg-gray-600 px-2.5 py-1 rounded text-amber-400 font-medium"><i class="fa-solid fa-copy mr-1"></i>কপি</button>
+                    </div>
+                    <p id="gateway-rule" class="text-[11px] text-gray-400">নগদ অ্যাকাউন্ট নাম্বারে সর্বনিম্ন ৫০ টাকা "Send Money" করুন। সফল হওয়ার পর নিচের ছকে ট্রানজেকশন আইডি ও আপনার নাম্বার দিন।</p>
+                </div>
+
+                <!-- Deposit Form -->
+                <form id="deposit-form" onsubmit="submitDeposit(event)" class="space-y-3">
+                    <div>
+                        <label class="block text-[11px] text-gray-300 mb-1">টাকার পরিমাণ (BDT / USD):</label>
+                        <input type="number" id="dep-amount" min="50" placeholder="সর্বনিম্ন ৫০ টাকা / ১ ডলার" required class="w-full bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500">
+                    </div>
+                    <div>
+                        <label id="sender-label" class="block text-[11px] text-gray-300 mb-1">প্রেরকের নম্বর / অ্যাকাউন্ট নং:</label>
+                        <input type="text" id="sender-acc" placeholder="০১৮XXXXXXXX বা Binance ID" required class="w-full bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] text-gray-300 mb-1">ট্রানজেকশন আইডি (TxID):</label>
+                        <input type="text" id="dep-txid" placeholder="যেমন: 9J3K8L2MOP" required class="w-full bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-xs text-white uppercase focus:outline-none focus:border-amber-500">
+                    </div>
+                    <button type="submit" class="w-full bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white font-bold py-2.5 rounded-xl text-xs shadow-lg transition flex items-center justify-center space-x-1">
+                        <i class="fa-solid fa-paper-plane"></i>
+                        <span>ডিপোজিট সাবমিট করুন</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- TAB 3: PROFILE -->
+        <div id="tab-profile" class="tab-content space-y-4">
+            <div class="glass-card p-4 rounded-2xl text-center space-y-3">
+                <div id="profile-avatar" class="w-16 h-16 rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 mx-auto flex items-center justify-center text-2xl font-bold shadow-lg">U</div>
+                <div>
+                    <h3 id="profile-name" class="text-base font-bold text-white">Elite Investment Support</h3>
+                    <p id="profile-username" class="text-xs text-gray-400">@Elite_Investment_Support_Team</p>
+                </div>
+                <div class="grid grid-cols-2 gap-2 pt-2 border-t border-gray-800">
+                    <div class="bg-gray-900/60 p-2.5 rounded-xl">
+                        <p class="text-[10px] text-gray-400">মোট ব্যালেন্স</p>
+                        <h4 id="profile-bal" class="text-sm font-bold text-emerald-400">0.0 ৳</h4>
+                    </div>
+                    <div class="bg-gray-900/60 p-2.5 rounded-xl">
+                        <p class="text-[10px] text-gray-400">দেখা ভিডিও সংখ্যা</p>
+                        <h4 id="profile-watched" class="text-sm font-bold text-blue-400">0 টি</h4>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Links & Admin Trigger -->
+            <div class="space-y-2">
+                <a href="https://t.me/Pori_moni_5" target="_blank" class="glass-card p-3 rounded-xl flex items-center justify-between hover:bg-gray-800/50 transition">
+                    <div class="flex items-center space-x-3">
+                        <i class="fa-brands fa-telegram text-blue-400 text-lg"></i>
+                        <span class="text-xs font-semibold text-white">টেলিগ্রাম অফিশিয়াল চ্যানেল</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-xs text-gray-500"></i>
+                </a>
+                <a href="http://t.me/Elite_Investbot" target="_blank" class="glass-card p-3 rounded-xl flex items-center justify-between hover:bg-gray-800/50 transition">
+                    <div class="flex items-center space-x-3">
+                        <i class="fa-solid fa-robot text-emerald-400 text-lg"></i>
+                        <span class="text-xs font-semibold text-white">টেলিগ্রাম সাপোর্ট বট</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-xs text-gray-500"></i>
+                </a>
+                <button onclick="openAdminModal()" class="w-full glass-card p-3 rounded-xl flex items-center justify-between hover:bg-gray-800/50 transition text-left">
+                    <div class="flex items-center space-x-3">
+                        <i class="fa-solid fa-lock text-amber-400 text-lg"></i>
+                        <span class="text-xs font-semibold text-white">এডমিন প্যানেল (পাসওয়ার্ড দিন)</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-xs text-gray-500"></i>
+                </button>
+            </div>
+        </div>
+
+    </main>
+    <!-- Bottom Navigation Bar -->
+    <nav class="fixed bottom-0 left-0 right-0 glass-card border-t border-gray-800 max-w-md mx-auto px-6 py-2 flex justify-between items-center z-40">
+        <button onclick="switchTab('home')" id="nav-home" class="flex flex-col items-center space-y-1 text-amber-400 transition">
+            <i class="fa-solid fa-film text-base"></i>
+            <span class="text-[10px]">ভিডিও</span>
+        </button>
+        <button onclick="switchTab('deposit')" id="nav-deposit" class="flex flex-col items-center space-y-1 text-gray-400 hover:text-white transition">
+            <i class="fa-solid fa-wallet text-base"></i>
+            <span class="text-[10px]">ডিপোজিট</span>
+        </button>
+        <button onclick="switchTab('profile')" id="nav-profile" class="flex flex-col items-center space-y-1 text-gray-400 hover:text-white transition">
+            <i class="fa-solid fa-user text-base"></i>
+            <span class="text-[10px]">প্রোফাইল</span>
+        </button>
+    </nav>
+
+    <!-- AD POPUP MODAL -->
+    <div id="ad-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="glass-card p-6 rounded-2xl max-w-xs w-full text-center space-y-4 border border-amber-500/30">
+            <div class="w-12 h-12 bg-amber-500/20 text-amber-400 rounded-full flex items-center justify-center mx-auto text-xl font-bold">
+                <i class="fa-solid fa-ad"></i>
+            </div>
+            <div>
+                <h3 class="text-sm font-bold text-white mb-1">বিজ্ঞাপন সম্পূর্ণ দেখুন</h3>
+                <p id="ad-timer-text" class="text-xs text-gray-400">ভিডিও আনলক করতে অ্যাডটি শেষ হওয়া পর্যন্ত অপেক্ষা করুন...</p>
+            </div>
+            <div id="ad-countdown" class="text-3xl font-extrabold text-amber-400">5s</div>
+        </div>
+    </div>
+
+    <!-- ADMIN LOGIN MODAL -->
+    <div id="admin-login-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="glass-card p-5 rounded-2xl max-w-xs w-full space-y-4">
+            <div class="flex justify-between items-center">
+                <h3 class="text-sm font-bold text-white flex items-center space-x-2">
+                    <i class="fa-solid fa-lock text-amber-400"></i>
+                    <span>এডমিন পাসওয়ার্ড দিন</span>
+                </h3>
+                <button onclick="closeAdminLoginModal()" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <p class="text-[11px] text-gray-400">গ্যালারিতে ভিডিও পোস্ট বা ডিপোজিট ম্যানেজ করতে সিকিউরিটি পাসওয়ার্ড দিন (admin123)।</p>
+            <input type="password" id="admin-pass-input" placeholder="পাসওয়ার্ড লিখুন" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500">
+            <div class="flex space-x-2">
+                <button onclick="closeAdminLoginModal()" class="w-1/2 bg-gray-800 hover:bg-gray-700 py-2 rounded-xl text-xs font-semibold text-gray-300">বাতিল</button>
+                <button onclick="verifyAdminPass()" class="w-1/2 bg-amber-500 hover:bg-amber-600 py-2 rounded-xl text-xs font-bold text-gray-950">লগইন</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ADMIN PANEL DASHBOARD MODAL -->
+    <div id="admin-dashboard-modal" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 hidden overflow-y-auto p-4">
+        <div class="max-w-md mx-auto space-y-4 pb-10">
+            <div class="glass-card p-4 rounded-2xl flex justify-between items-center sticky top-2 z-10">
+                <h3 class="text-sm font-bold text-amber-400 flex items-center space-x-2">
+                    <i class="fa-solid fa-shield-halved"></i>
+                    <span>এডমিন কন্ট্রোল প্যানেল</span>
+                </h3>
+                <button onclick="closeAdminDashboard()" class="bg-gray-800 text-gray-300 px-3 py-1 rounded-lg text-xs font-semibold">বন্ধ করুন</button>
+            </div>
+
+            <!-- Upload Video Section -->
+            <div class="glass-card p-4 rounded-2xl space-y-3">
+                <h4 class="text-xs font-bold text-white border-b border-gray-800 pb-2">নতুন ভিডিও আপলোড করুন</h4>
+                <form onsubmit="handleAdminUpload(event)" class="space-y-3">
+                    <div>
+                        <label class="block text-[11px] text-gray-300 mb-1">ভিডিও শিরোনাম:</label>
+                        <input type="text" id="adm-vid-title" placeholder="যেমন: Exclusive Drama" required class="w-full bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] text-gray-300 mb-1">ভিডিও ফাইল নির্বাচন করুন (গ্যালারি থেকে):</label>
+                        <input type="file" id="adm-vid-file" accept="video/*" required class="w-full bg-gray-900 border border-gray-700 rounded-xl px-2 py-1.5 text-xs text-gray-300 file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-amber-500 file:text-gray-950">
+                    </div>
+                    <button type="submit" class="w-full bg-amber-500 hover:bg-amber-600 text-gray-950 font-bold py-2 rounded-xl text-xs shadow transition">ভিডিও পোস্ট করুন</button>
+                </form>
+            </div>
+
+            <!-- Deposit Requests Management -->
+            <div class="glass-card p-4 rounded-2xl space-y-3">
+                <h4 class="text-xs font-bold text-white border-b border-gray-800 pb-2">ডিপোজিট রিকোয়েস্ট ম্যানেজমেন্ট</h4>
+                <div id="admin-deposits-list" class="space-y-2">
+                    <p class="text-xs text-gray-400 text-center py-2">কোনো ডিপোজিট রিকোয়েস্ট নেই</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- JAVASCRIPT LOGIC WITH LOCALSTORAGE -->
+    <script>
+        let tg = window.Telegram?.WebApp;
+        let userData = {
+            id: "9084728958",
+            first_name: "Elite Investment Support Team",
+            username: "Elite_Investment_Support_Team"
+        };
+
+        if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
+            userData = tg.initDataUnsafe.user;
+        }
+
+        document.getElementById('user-name').innerText = userData.first_name;
+        document.getElementById('user-id').innerText = userData.id;
+        document.getElementById('profile-name').innerText = userData.first_name;
+        document.getElementById('profile-username').innerText = '@' + (userData.username || 'user_' + userData.id);
+        
+        let initialLetter = userData.first_name.charAt(0).toUpperCase();
+        document.getElementById('user-avatar').innerText = initialLetter;
+        document.getElementById('profile-avatar').innerText = initialLetter;
+
+        // Persistent State using localStorage
+        let state = {
+            balance: parseFloat(localStorage.getItem('user_balance')) || 0.0,
+            watchedAdsCount: parseInt(localStorage.getItem('watched_ads')) || 0,
+            totalWatchedVideos: parseInt(localStorage.getItem('total_watched')) || 0,
+            currentGateway: 'nagad',
+            deposits: JSON.parse(localStorage.getItem('admin_deposits')) || [],
+            videos: JSON.parse(localStorage.getItem('app_videos')) || [
+                { id: 1, title: 'Exclusive Drama Highlight Trailer', src: 'https://www.w3schools.com/html/mov_bbb.mp4', unlocked: false }
+            ]
+        };
+
+        function saveState() {
+            localStorage.setItem('user_balance', state.balance);
+            localStorage.setItem('watched_ads', state.watchedAdsCount);
+            localStorage.setItem('total_watched', state.totalWatchedVideos);
+            localStorage.setItem('admin_deposits', JSON.stringify(state.deposits));
+            localStorage.setItem('app_videos', JSON.stringify(state.videos));
+        }
+
+        const gateways = {
+            bkash: { title: 'বিকাশ (Send Money)', acc: '01873046713', rule: 'বিকাশ অ্যাকাউন্ট নাম্বারে সর্বনিম্ন ৫০ টাকা "Send Money" করুন। সফল হওয়ার পর ট্রানজেকশন আইডি দিন।' },
+            nagad: { title: 'নগদ (Send Money)', acc: '01863796311', rule: 'নগদ অ্যাকাউন্ট নাম্বারে সর্বনিম্ন ৫০ টাকা "Send Money" করুন। সফল হওয়ার পর ট্রানজেকশন আইডি দিন।' },
+            binance: { title: 'Binance Pay', acc: '1268820382', rule: 'বাইনান্স পে আইডি তে সর্বনিম্ন ১ ডলার (১২৫ টাকা) সেন্ড করুন।' },
+            bitcoin: { title: 'Bitcoin Address', acc: '12KjwHj8uNVoX4iiacd5zQkR8k3Jcxe3Gs', rule: 'বিটকয়েন অ্যাড্রেসে সর্বনিম্ন ১ ডলার সমপরিমাণ ক্রিপ্টো সেন্ড করুন।' }
+        };
+
+        function selectGateway(type) {
+            state.currentGateway = type;
+            document.querySelectorAll('.gateway-btn').forEach(btn => {
+                btn.classList.remove('border-pink-500', 'bg-pink-500/10');
+                btn.classList.add('border-gray-700', 'bg-gray-800/50');
+            });
+            let selectedBtn = document.getElementById('gateway-' + type);
+            selectedBtn.classList.remove('border-gray-700', 'bg-gray-800/50');
+            selectedBtn.classList.add('border-pink-500', 'bg-pink-500/10');
+
+            let gw = gateways[type];
+            document.getElementById('gateway-title').innerText = gw.title;
+            document.getElementById('gateway-acc').innerText = gw.acc;
+            document.getElementById('gateway-rule').innerText = gw.rule;
+            document.getElementById('sender-label').innerText = (type === 'binance') ? 'বাইনান্স পে আইডি / ইমেইল:' : 'প্রেরকের নম্বর / অ্যাকাউন্ট নং:';
+        }
+
+        function copyToClipboard(elementId) {
+            let text = document.getElementById(elementId).innerText;
+            navigator.clipboard.writeText(text);
+            alert('সফলভাবে কপি হয়েছে: ' + text);
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.getElementById('tab-' + tabId).classList.add('active');
+
+            ['home', 'deposit', 'profile'].forEach(t => {
+                let btn = document.getElementById('nav-' + t);
+                if(btn) {
+                    btn.classList.remove('text-amber-400');
+                    btn.classList.add('text-gray-400');
+                }
+            });
+            let activeNav = document.getElementById('nav-' + tabId);
+            if(activeNav) {
+                activeNav.classList.remove('text-gray-400');
+                activeNav.classList.add('text-amber-400');
+            }
+        }
+
+        function renderVideos() {
+            let container = document.getElementById('video-gallery-container');
+            container.innerHTML = '';
+            state.videos.forEach(vid => {
+                let html = `
+                    <div class="glass-card p-3 rounded-xl space-y-2">
+                        <div class="relative rounded-lg overflow-hidden bg-black aspect-video flex items-center justify-center">
+                            ${vid.unlocked ? `
+                                <video controls class="w-full h-full object-cover" src="${vid.src}"></video>
+                            ` : `
+                                <div class="absolute inset-0 bg-black/60 flex flex-col items-center justify-center p-3 text-center space-y-2">
+                                    <i class="fa-solid fa-lock text-amber-400 text-xl"></i>
+                                    <p class="text-xs font-bold text-white">${vid.title}</p>
+                                    <div class="flex space-x-2">
+                                        <button onclick="unlockWithAds(${vid.id})" class="bg-amber-500 hover:bg-amber-600 text-gray-950 font-bold px-3 py-1.5 rounded-lg text-[11px] transition">
+                                            <i class="fa-solid fa-ad mr-1"></i> অ্যাড (${state.watchedAdsCount}/5)
+                                        </button>
+                                        <button onclick="unlockWithBalance(${vid.id})" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1.5 rounded-lg text-[11px] transition">
+                                            <i class="fa-solid fa-coins mr-1"></i> ৫ টাকা আনলক
+                                        </button>
+                                    </div>
+                                </div>
+                            `}
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <h4 class="text-xs font-bold text-white truncate">${vid.title}</h4>
+                            <button onclick="deleteVideo(${vid.id})" class="text-red-400 hover:text-red-300 text-xs"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += html;
+            });
+            document.getElementById('ad-counter-badge').innerText = state.watchedAdsCount + ' / ৫ দেখা হয়েছে';
+            document.getElementById('profile-watched').innerText = state.totalWatchedVideos + ' টি';
+        }
+
+        function watchAdSequence() {
+            if(state.watchedAdsCount >= 5) {
+                alert('আপনার ৫টি বিজ্ঞাপন দেখা সম্পন্ন হয়েছে! এখন যেকোনো ভিডিও আনলক করতে পারবেন।');
+                return;
+            }
+            
+            if(typeof show_12236532 === 'function') {
+                try { show_12236532(); } catch(e) {}
+            }
+
+            let modal = document.getElementById('ad-modal');
+            let timerEl = document.getElementById('ad-countdown');
+            modal.classList.remove('hidden');
+            let timeLeft = 5;
+            timerEl.innerText = timeLeft + 's';
+
+            let timer = setInterval(() => {
+                timeLeft--;
+                timerEl.innerText = timeLeft + 's';
+                if(timeLeft <= 0) {
+                    clearInterval(timer);
+                    modal.classList.add('hidden');
+                    state.watchedAdsCount++;
+                    saveState();
+                    document.getElementById('ad-counter-badge').innerText = state.watchedAdsCount + ' / ৫ দেখা হয়েছে';
+                    document.getElementById('ad-btn-text').innerText = state.watchedAdsCount >= 5 ? 'ভিডিও আনলক করার প্রস্তুত!' : `পরের এড দেখুন (${state.watchedAdsCount + 1} পয়েন্ট)`;
+                    renderVideos();
+                    alert('বিজ্ঞাপন সফলভাবে দেখা সম্পন্ন হয়েছে!');
+                }
+            }, 1000);
+        }
+
+        function unlockWithAds(vidId) {
+            if(state.watchedAdsCount < 5) {
+                alert('ভিডিও আনলক করতে প্রথমে ৫টি বিজ্ঞাপন সম্পূর্ণ দেখতে হবে।');
+                watchAdSequence();
+                return;
+            }
+            let vid = state.videos.find(v => v.id === vidId);
+            if(vid) {
+                vid.unlocked = true;
+                state.watchedAdsCount = 0;
+                state.totalWatchedVideos++;
+                saveState();
+                renderVideos();
+                alert('ভিডিও সফলভাবে আনলক করা হয়েছে!');
+            }
+        }
+
+        function unlockWithBalance(vidId) {
+            if(state.balance < 5) {
+                alert('আপনার অ্যাকাউন্টে পর্যাপ্ত ব্যালেন্স নেই! দয়া করে ডিপোজিট করুন।');
+                switchTab('deposit');
+                return;
+            }
+            state.balance -= 5;
+            state.totalWatchedVideos++;
+            saveState();
+            updateBalanceUI();
+            let vid = state.videos.find(v => v.id === vidId);
+            if(vid) {
+                vid.unlocked = true;
+                renderVideos();
+                alert('৫ টাকা কেটে নেওয়া হয়েছে এবং ভিডিও আনলক করা হয়েছে!');
+            }
+        }
+
+        function updateBalanceUI() {
+            document.getElementById('user-balance').innerText = state.balance.toFixed(2);
+            document.getElementById('profile-bal').innerText = state.balance.toFixed(2) + ' ৳';
+        }
+
+        function submitDeposit(event) {
+            event.preventDefault();
+            let amount = parseFloat(document.getElementById('dep-amount').value);
+            let sender = document.getElementById('sender-acc').value;
+            let txid = document.getElementById('dep-txid').value;
+
+            if(amount < 50 && state.currentGateway !== 'binance' && state.currentGateway !== 'bitcoin') {
+                alert('সর্বনিম্ন ডিপোজিট ৫০ টাকা!');
+                return;
+            }
+
+            let depositReq = {
+                id: Date.now(),
+                user: userData.first_name,
+                userId: userData.id,
+                gateway: state.currentGateway,
+                amount: amount,
+                sender: sender,
+                txid: txid,
+                status: 'pending',
+                reason: ''
+            };
+
+            state.deposits.push(depositReq);
+            saveState();
+            alert('আপনার ডিপোজিট রিকোয়েস্ট সফলভাবে জমা হয়েছে।');
+            document.getElementById('deposit-form').reset();
+            renderAdminDeposits();
+        }
+
+        let isAdminLoggedIn = false;
+        function openAdminModal() {
+            if(isAdminLoggedIn) {
+                document.getElementById('admin-dashboard-modal').classList.remove('hidden');
+                renderAdminDeposits();
+            } else {
+                document.getElementById('admin-login-modal').classList.remove('hidden');
+            }
+        }
+
+        function closeAdminLoginModal() {
+            document.getElementById('admin-login-modal').classList.add('hidden');
+        }
+
+        function verifyAdminPass() {
+            let pass = document.getElementById('admin-pass-input').value;
+            if(pass === 'admin123') {
+                isAdminLoggedIn = true;
+                closeAdminLoginModal();
+                document.getElementById('admin-dashboard-modal').classList.remove('hidden');
+                renderAdminDeposits();
+            } else {
+                alert('ভুল পাসওয়ার্ড!');
+            }
+        }
+
+        function closeAdminDashboard() {
+            document.getElementById('admin-dashboard-modal').classList.add('hidden');
+        }
+
+        function handleAdminUpload(event) {
+            event.preventDefault();
+            let title = document.getElementById('adm-vid-title').value;
+            let fileInput = document.getElementById('adm-vid-file');
+            
+            if(fileInput.files && fileInput.files[0]) {
+                let fileURL = URL.createObjectURL(fileInput.files[0]);
+                let newVid = {
+                    id: Date.now(),
+                    title: title,
+                    src: fileURL,
+                    unlocked: false
+                };
+                state.videos.unshift(newVid);
+                saveState();
+                renderVideos();
+                alert('ভিডিও সফলভাবে গ্যালারিতে আপলোড করা হয়েছে!');
+                document.getElementById('adm-vid-title').value = '';
+                fileInput.value = '';
+            }
+        }
+
+        function deleteVideo(id) {
+            if(confirm('ভিডিওটি ডিলিট করতে চান?')) {
+                state.videos = state.videos.filter(v => v.id !== id);
+                saveState();
+                renderVideos();
+            }
+        }
+
+        function renderAdminDeposits() {
+            let listContainer = document.getElementById('admin-deposits-list');
+            if(state.deposits.length === 0) {
+                listContainer.innerHTML = '<p class="text-xs text-gray-400 text-center py-2">কোনো ডিপোজিট রিকোয়েস্ট নেই</p>';
+                return;
+            }
+            listContainer.innerHTML = '';
+            state.deposits.forEach(dep => {
+                let html = `
+                    <div class="bg-gray-900 p-3 rounded-xl border border-gray-800 space-y-2 text-xs">
+                        <div class="flex justify-between">
+                            <span class="font-bold text-white">${dep.user} (ID: ${dep.userId})</span>
+                            <span class="text-amber-400 font-bold">${dep.amount} ৳ (${dep.gateway.toUpperCase()})</span>
+                        </div>
+                        <p class="text-gray-400">Sender: <b>${dep.sender}</b> | TxID: <span class="text-emerald-400 font-mono">${dep.txid}</span></p>
+                        <p class="text-[10px] text-gray-500">Status: <span class="uppercase text-amber-300">${dep.status}</span> ${dep.reason ? '| Reason: ' + dep.reason : ''}</p>
+                        ${dep.status === 'pending' ? `
+                            <div class="flex space-x-2 pt-1">
+                                <button onclick="approveDeposit(${dep.id})" class="w-1/2 bg-emerald-600 hover:bg-emerald-700 text-white py-1 rounded font-semibold">অনুমোদন</button>
+                                <button onclick="rejectDepositPrompt(${dep.id})" class="w-1/2 bg-red-600 hover:bg-red-700 text-white py-1 rounded font-semibold">বাতিল করুন</button>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+                listContainer.innerHTML += html;
+            });
+        }
+
+        function approveDeposit(id) {
+            let dep = state.deposits.find(d => d.id === id);
+            if(dep && dep.status === 'pending') {
+                dep.status = 'approved';
+                state.balance += dep.amount;
+                saveState();
+                updateBalanceUI();
+                renderAdminDeposits();
+                alert('ডিপোজিট অনুমোদন করা হয়েছে এবং ওয়ালেটে ব্যালেন্স যোগ হয়েছে!');
+            }
+        }
+
+        function rejectDepositPrompt(id) {
+            let reason = prompt('বাতিল করার কারণ লিখুন:');
+            if(reason !== null) {
+                let dep = state.deposits.find(d => d.id === id);
+                if(dep) {
+                    dep.status = 'rejected';
+                    dep.reason = reason;
+                    saveState();
+                    renderAdminDeposits();
+                    alert('ডিপোজিট রিকোয়েস্ট বাতিল করা হয়েছে।');
+                }
+            }
+        }
+
+        renderVideos();
+        updateBalanceUI();
+    </script>
+</body>
+</html>
